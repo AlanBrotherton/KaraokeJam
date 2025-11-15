@@ -167,7 +167,9 @@
 .songs-grid-section {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 2rem;
+  min-height: 0;
 }
 
 .songs-grid-content {
