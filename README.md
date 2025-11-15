@@ -1,3 +1,2 @@
 # KaraokeJam
-hello
-hola
+to run frontend: npm run dev
