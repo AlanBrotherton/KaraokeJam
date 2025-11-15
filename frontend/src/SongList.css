@@ -278,3 +278,34 @@
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
+
+.upload-button-section {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  border-top: 3px solid var(--neon-purple);
+  padding: 2rem;
+  display: flex;
+  justify-content: center;
+  box-shadow: 0 0 20px var(--neon-purple-glow);
+}
+
+.upload-button {
+  padding: 1rem 3rem;
+  font-size: 1.25rem;
+  font-weight: 900;
+  color: #000;
+  background: var(--neon-purple);
+  border: 3px solid var(--neon-purple);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 0 20px var(--neon-purple-glow);
+}
+
+.upload-button:hover {
+  background: transparent;
+  color: var(--neon-purple);
+  box-shadow: 0 0 30px var(--neon-purple-glow);
+  transform: scale(1.05);
+}

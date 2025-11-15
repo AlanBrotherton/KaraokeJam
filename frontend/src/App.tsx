@@ -3,17 +3,17 @@ import logo from './assets/logo.png'
 import { useState } from 'react'
 import SongList from './SongList'
 import KaraokePage from './KaraokePage'
+import SongUpload from './SongUpload'
 
 interface Song {
   id: number
   title: string
   artist: string
-  genre: string
   duration: string
 }
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'songs' | 'karaoke'>('home')
+  const [currentPage, setCurrentPage] = useState<'home' | 'songs' | 'karaoke' | 'upload'>('home')
   const [selectedSong, setSelectedSong] = useState<Song | null>(null)
 
   const handleBrowseSongs = () => {
@@ -27,7 +27,15 @@ function App() {
   }
 
   if (currentPage === 'songs') {
-    return <SongList onBack={() => setCurrentPage('home')} onSongSelect={handleSongSelect} />
+    return <SongList 
+      onBack={() => setCurrentPage('home')} 
+      onSongSelect={handleSongSelect}
+      onUploadClick={() => setCurrentPage('upload')}
+    />
+  }
+
+  if (currentPage === 'upload') {
+    return <SongUpload onBack={() => setCurrentPage('songs')} />
   }
 
   if (currentPage === 'karaoke' && selectedSong) {

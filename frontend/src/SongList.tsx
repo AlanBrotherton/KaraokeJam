@@ -6,41 +6,29 @@ interface Song {
   id: number
   title: string
   artist: string
-  genre: string
   difficulty: 'Easy' | 'Medium' | 'Hard'
   duration: string
 }
 
-// Sample song data
-const sampleSongs: Song[] = [
-  { id: 1, title: "Bohemian Rhapsody", artist: "Queen", genre: "Rock", difficulty: "Hard", duration: "5:55" },
-  { id: 2, title: "Sweet Child O' Mine", artist: "Guns N' Roses", genre: "Rock", difficulty: "Medium", duration: "5:56" },
-  { id: 3, title: "Shake It Off", artist: "Taylor Swift", genre: "Pop", difficulty: "Easy", duration: "3:39" },
-  { id: 4, title: "Billie Jean", artist: "Michael Jackson", genre: "Pop", difficulty: "Medium", duration: "4:54" },
-  { id: 5, title: "Rolling in the Deep", artist: "Adele", genre: "Pop", difficulty: "Medium", duration: "3:48" },
-  { id: 6, title: "Don't Stop Believin'", artist: "Journey", genre: "Rock", difficulty: "Easy", duration: "4:11" },
-  { id: 7, title: "Someone Like You", artist: "Adele", genre: "Ballad", difficulty: "Easy", duration: "4:45" },
-  { id: 8, title: "Livin' on a Prayer", artist: "Bon Jovi", genre: "Rock", difficulty: "Medium", duration: "4:09" },
-  { id: 9, title: "Uptown Funk", artist: "Bruno Mars", genre: "Funk", difficulty: "Hard", duration: "4:30" },
-  { id: 10, title: "Let It Be", artist: "The Beatles", genre: "Rock", difficulty: "Easy", duration: "4:03" },
-]
-
 interface SongListProps {
   onBack: () => void
   onSongSelect: (song: Song) => void
+  onUploadClick: () => void
 }
 
-function SongList({ onBack, onSongSelect }: SongListProps) {
+function SongList({ onBack, onSongSelect, onUploadClick }: SongListProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectedGenre, setSelectedGenre] = useState<string>('All')
+  const [songs, setSongs] = useState<Song[]>([])
 
-  const genres = ['All', 'Rock', 'Pop', 'Ballad', 'Funk']
+  // TODO: Fetch songs from database
+  // useEffect(() => {
+  //   fetchSongs().then(data => setSongs(data))
+  // }, [])
 
-  const filteredSongs = sampleSongs.filter(song => {
+  const filteredSongs = songs.filter(song => {
     const matchesSearch = song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          song.artist.toLowerCase().includes(searchQuery.toLowerCase())
-    const matchesGenre = selectedGenre === 'All' || song.genre === selectedGenre
-    return matchesSearch && matchesGenre
+    return matchesSearch
   })
 
   const handleSongSelect = (song: Song) => {
@@ -85,22 +73,7 @@ function SongList({ onBack, onSongSelect }: SongListProps) {
             className="search-input"
           />
 
-          {/* Filters */}
-          <div className="filters-row">
-            {/* Genre Filter */}
-            <div className="filter-group">
-              <span className="filter-label">Genre:</span>
-              {genres.map(genre => (
-                <button
-                  key={genre}
-                  onClick={() => setSelectedGenre(genre)}
-                  className={`filter-button ${selectedGenre === genre ? 'active' : ''}`}
-                >
-                  {genre}
-                </button>
-              ))}
-            </div>
-          </div>
+
         </div>
       </div>
 
@@ -123,7 +96,6 @@ function SongList({ onBack, onSongSelect }: SongListProps) {
                   </div>
                 </div>
                 <div className="song-card-footer">
-                  <span>{song.genre}</span>
                   <span>{song.duration}</span>
                 </div>
               </div>
@@ -132,11 +104,21 @@ function SongList({ onBack, onSongSelect }: SongListProps) {
 
           {filteredSongs.length === 0 && (
             <div className="empty-state">
-              <p className="empty-state-title">No songs found</p>
-              <p className="empty-state-subtitle">Try adjusting your filters or search query</p>
+              <p className="empty-state-title">{searchQuery ? 'No songs found' : 'No songs uploaded yet'}</p>
+              <p className="empty-state-subtitle">{searchQuery ? 'Try adjusting your search query' : 'Upload your first song to get started'}</p>
             </div>
           )}
         </div>
+      </div>
+
+      {/* Upload Button */}
+      <div className="upload-button-section">
+        <button
+          onClick={onUploadClick}
+          className="upload-button"
+        >
+          + Upload Song
+        </button>
       </div>
     </div>
   )
