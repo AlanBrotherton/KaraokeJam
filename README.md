@@ -1,2 +1,4 @@
 # KaraokeJam
-to run frontend: npm run dev
+to run frontend: 
+cd frontend
+npm run dev
