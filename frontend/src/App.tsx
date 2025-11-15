@@ -38,6 +38,7 @@ function App() {
         <button
           onClick={handleBrowseSongs}
           className="px-12 py-4 text-lg font-bold text-black bg-purple-500 rounded border-4 border-purple-400 hover:bg-blue-500 hover:border-blue-400 transition-all uppercase tracking-wider shadow-[0_0_20px_rgba(168,85,247,0.6)] hover:shadow-[0_0_30px_rgba(59,130,246,0.8)]"
+          style={{ marginTop: '40px' }}
         >
           Browse Songs
         </button>
