@@ -20,10 +20,16 @@ A karaoke application with real-time pitch detection and scoring. Features an ar
 
 ### Backend
 - **FastAPI** - Python web framework
+- **Uvicorn** - ASGI server
 - **Librosa** - Audio analysis and pitch detection
 - **NumPy/SciPy** - Scientific computing
+- **Scikit-learn** - Machine learning for audio features
+- **Demucs** - AI-powered vocal separation
+- **OpenAI Whisper** - Speech-to-text with timestamps
 - **WebSockets** - Real-time audio streaming
-- **Pydub** - Audio processing
+- **Pydub** - Audio file manipulation
+- **FastDTW** - Dynamic time warping for timing comparison
+- **Pydantic** - Data validation
 
 ## Setup & Running
 
@@ -40,12 +46,18 @@ Runs on: `http://localhost:5173`
 cd backend
 python3 -m venv venv
 source venv/bin/activate  # On macOS/Linux
+# On Windows: venv\Scripts\activate
 pip install -r requirements.txt
 uvicorn main:app --reload --port 8000
 ```
 Runs on: `http://localhost:8000`
 
 API Docs: `http://localhost:8000/docs`
+
+**Note:** If you encounter pip issues, upgrade pip first:
+```bash
+pip install --upgrade pip
+```
 
 ## Project Structure
 ```
@@ -68,3 +80,13 @@ KaraokeJam/
 - Frontend uses Tailwind CSS v4 with Vite plugin
 - Arcade theme uses Orbitron font family
 - Color scheme: Neon purple (#a855f7) and neon blue (#3b82f6)
+- Python 3.12+ compatible
+- Uses WebSockets for real-time audio streaming
+- Audio analysis powered by Librosa and NumPy
+
+## Planned Features
+- User song uploads with automatic vocal separation
+- LRC file generation from audio (speech-to-text with timestamps)
+- Real-time pitch detection and scoring
+- Performance history tracking
+- Supabase integration for song and user data storage
