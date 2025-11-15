@@ -6,7 +6,14 @@ import KaraokePage from './KaraokePage'
 import SongUpload from './SongUpload'
 import SignIn from './SignIn'
 import { supabase } from './supabaseClient'
-import type { User } from '@supabase/supabase-js'
+import bcrypt from 'bcryptjs'
+
+interface User {
+  id: string
+  username: string
+  first_name: string
+  last_name: string
+}
 
 interface Song {
   id: number
@@ -22,18 +29,12 @@ function App() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null)
-      setLoading(false)
-    })
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
-
-    return () => subscription.unsubscribe()
+    // Check for existing session in localStorage
+    const sessionUser = localStorage.getItem('user')
+    if (sessionUser) {
+      setUser(JSON.parse(sessionUser))
+    }
+    setLoading(false)
   }, [])
 
   const handleBrowseSongs = () => {
@@ -46,37 +47,86 @@ function App() {
     setCurrentPage('karaoke')
   }
 
-  const handleSignIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) throw error
+  const handleSignIn = async (username: string, password: string) => {
+    // Query user from database
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('username', username)
+      .single()
+
+    if (error || !data) {
+      throw new Error('Invalid username or password')
+    }
+
+    // Verify password
+    const isValid = await bcrypt.compare(password, data.password_hash)
+    if (!isValid) {
+      throw new Error('Invalid username or password')
+    }
+
+    // Store user session
+    const userSession: User = {
+      id: data.id,
+      username: data.username,
+      first_name: data.first_name,
+      last_name: data.last_name,
+    }
+    localStorage.setItem('user', JSON.stringify(userSession))
+    setUser(userSession)
   }
 
-  const handleSignUp = async (email: string, password: string, firstName: string, lastName: string) => {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          first_name: firstName,
-          last_name: lastName,
-        }
-      }
-    })
-    if (error) throw error
+  const handleSignUp = async (username: string, password: string, firstName: string, lastName: string) => {
+    // Check if username already exists
+    const { data: existingUser } = await supabase
+      .from('users')
+      .select('username')
+      .eq('username', username)
+      .single()
 
-    // Create profile in database
-    if (data.user) {
-      await supabase.from('profiles').insert({
-        id: data.user.id,
+    if (existingUser) {
+      throw new Error('Username already taken')
+    }
+
+    // Hash password
+    const salt = await bcrypt.genSalt(10)
+    const hashedPassword = await bcrypt.hash(password, salt)
+
+    // Insert new user
+    const { data, error } = await supabase
+      .from('users')
+      .insert({
+        username,
+        password_hash: hashedPassword,
         first_name: firstName,
         last_name: lastName,
-        email: email,
       })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Supabase error:', error)
+      throw new Error(`Failed to create account: ${error.message}`)
     }
+
+    if (!data) {
+      throw new Error('Failed to create account: No data returned')
+    }
+
+    // Store user session
+    const userSession: User = {
+      id: data.id,
+      username: data.username,
+      first_name: data.first_name,
+      last_name: data.last_name,
+    }
+    localStorage.setItem('user', JSON.stringify(userSession))
+    setUser(userSession)
   }
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
+    localStorage.removeItem('user')
+    setUser(null)
     setCurrentPage('home')
   }
 
@@ -133,7 +183,7 @@ function App() {
         {/* Description */}
         <div className="w-full flex justify-center">
           <p className="text-lg text-blue-400 leading-relaxed uppercase tracking-wider text-center">
-            Welcome {user.email}! Upload your songs and sing your heart out.
+            Welcome {user.first_name} {user.last_name}! Upload your songs and sing your heart out.
           </p>
         </div>
 

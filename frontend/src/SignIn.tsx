@@ -3,13 +3,13 @@ import './SignIn.css'
 import logo from './assets/logo.png'
 
 interface SignInProps {
-  onSignIn: (email: string, password: string) => Promise<void>
-  onSignUp: (email: string, password: string, firstName: string, lastName: string) => Promise<void>
+  onSignIn: (username: string, password: string) => Promise<void>
+  onSignUp: (username: string, password: string, firstName: string, lastName: string) => Promise<void>
 }
 
 function SignIn({ onSignIn, onSignUp }: SignInProps) {
   const [isSignUp, setIsSignUp] = useState(false)
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [firstName, setFirstName] = useState('')
@@ -29,9 +29,9 @@ function SignIn({ onSignIn, onSignUp }: SignInProps) {
     setLoading(true)
     try {
       if (isSignUp) {
-        await onSignUp(email, password, firstName, lastName)
+        await onSignUp(username, password, firstName, lastName)
       } else {
-        await onSignIn(email, password)
+        await onSignIn(username, password)
       }
     } catch (err: any) {
       setError(err.message || 'Authentication failed')
@@ -99,16 +99,16 @@ function SignIn({ onSignIn, onSignUp }: SignInProps) {
               </>
             )}
 
-            {/* Email Field */}
+            {/* Username Field */}
             <div className="form-field">
-              <label className="form-label">Email Address</label>
+              <label className="form-label">Username</label>
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
                 className="form-input"
-                placeholder="ENTER YOUR EMAIL"
+                placeholder="ENTER YOUR USERNAME"
                 disabled={loading}
               />
             </div>
