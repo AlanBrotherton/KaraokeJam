@@ -18,12 +18,16 @@ interface SongListProps {
 
 function SongList({ onBack, onSongSelect, onUploadClick }: SongListProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [songs, setSongs] = useState<Song[]>([])
+  const [songs] = useState<Song[]>([])
 
   // TODO: Fetch songs from database
   // useEffect(() => {
-  //   fetchSongs().then(data => setSongs(data))
-  // }, [])
+  //   const fetchSongs = async () => {
+  //     const { data } = await supabase.from('songs').select('*')
+  //     setSongs(data || [])
+  //   }
+  //   fetchSongs()
+  // }, [setSongs])
 
   const filteredSongs = songs.filter(song => {
     const matchesSearch = song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
