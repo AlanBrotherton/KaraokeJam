@@ -27,9 +27,10 @@ const sampleSongs: Song[] = [
 
 interface SongListProps {
   onBack: () => void
+  onSongSelect: (song: Song) => void
 }
 
-function SongList({ onBack }: SongListProps) {
+function SongList({ onBack, onSongSelect }: SongListProps) {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedGenre, setSelectedGenre] = useState<string>('All')
 
@@ -43,8 +44,7 @@ function SongList({ onBack }: SongListProps) {
   })
 
   const handleSongSelect = (song: Song) => {
-    console.log('Selected song:', song)
-    // TODO: Navigate to karaoke player with selected song
+    onSongSelect(song)
   }
 
   const handleBackHome = () => {

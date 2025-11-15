@@ -2,17 +2,36 @@ import './App.css'
 import logo from './assets/logo.png'
 import { useState } from 'react'
 import SongList from './SongList'
+import KaraokePage from './KaraokePage'
+
+interface Song {
+  id: number
+  title: string
+  artist: string
+  genre: string
+  duration: string
+}
 
 function App() {
-  const [currentPage, setCurrentPage] = useState<'home' | 'songs'>('home')
+  const [currentPage, setCurrentPage] = useState<'home' | 'songs' | 'karaoke'>('home')
+  const [selectedSong, setSelectedSong] = useState<Song | null>(null)
 
   const handleBrowseSongs = () => {
     console.log('Browse songs clicked')
     setCurrentPage('songs')
   }
 
+  const handleSongSelect = (song: Song) => {
+    setSelectedSong(song)
+    setCurrentPage('karaoke')
+  }
+
   if (currentPage === 'songs') {
-    return <SongList onBack={() => setCurrentPage('home')} />
+    return <SongList onBack={() => setCurrentPage('home')} onSongSelect={handleSongSelect} />
+  }
+
+  if (currentPage === 'karaoke' && selectedSong) {
+    return <KaraokePage song={selectedSong} onBack={() => setCurrentPage('songs')} />
   }
 
   return (

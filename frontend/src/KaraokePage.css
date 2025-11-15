@@ -1,0 +1,284 @@
+/* Karaoke Page Styles */
+:root {
+  --neon-purple: #a855f7;
+  --neon-blue: #3b82f6;
+  --neon-purple-glow: rgba(168, 85, 247, 0.6);
+  --neon-blue-glow: rgba(59, 130, 246, 0.6);
+}
+
+.karaoke-container {
+  width: 100vw;
+  height: 100vh;
+  background: #000;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.karaoke-header {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  border-bottom: 3px solid var(--neon-purple);
+  padding: 1.5rem;
+  box-shadow: 0 0 20px var(--neon-purple-glow);
+}
+
+.karaoke-header-content {
+  max-width: 80rem;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.karaoke-back-button {
+  padding: 0.75rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--neon-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.karaoke-back-button:hover {
+  color: var(--neon-purple);
+  text-shadow: 0 0 10px var(--neon-purple-glow);
+}
+
+.song-info-header {
+  text-align: center;
+  flex: 1;
+}
+
+.karaoke-song-title {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: var(--neon-purple);
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  text-shadow: 0 0 15px var(--neon-purple-glow);
+  margin-bottom: 0.25rem;
+}
+
+.karaoke-song-artist {
+  font-size: 1rem;
+  color: var(--neon-blue);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.timer-display {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--neon-blue);
+  text-shadow: 0 0 10px var(--neon-blue-glow);
+  min-width: 100px;
+  text-align: right;
+}
+
+.karaoke-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Countdown Overlay */
+.countdown-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  animation: fadeIn 0.3s ease-in;
+}
+
+.countdown-number {
+  font-size: 15rem;
+  font-weight: 900;
+  color: var(--neon-purple);
+  text-shadow: 0 0 50px var(--neon-purple-glow),
+               0 0 100px var(--neon-purple-glow);
+  animation: countdownPulse 1s ease-in-out;
+}
+
+@keyframes countdownPulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Visualizer Area */
+.visualizer-area {
+  flex: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle, rgba(168, 85, 247, 0.1) 0%, rgba(0, 0, 0, 1) 70%);
+  position: relative;
+  overflow: hidden;
+}
+
+.visualizer-placeholder {
+  position: relative;
+  width: 300px;
+  height: 300px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pulse-circle {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  border: 3px solid var(--neon-purple);
+  border-radius: 50%;
+  animation: pulse 2s ease-out infinite;
+}
+
+.pulse-circle.pulse-2 {
+  animation-delay: 0.7s;
+  border-color: var(--neon-blue);
+}
+
+.pulse-circle.pulse-3 {
+  animation-delay: 1.4s;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(0.5);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1.5);
+    opacity: 0;
+  }
+}
+
+/* Lyrics Container */
+.lyrics-container {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.95), rgba(0, 0, 0, 0.5));
+  border-top: 2px solid rgba(59, 130, 246, 0.3);
+}
+
+.lyrics-text {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--neon-blue);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  text-shadow: 0 0 20px var(--neon-blue-glow);
+  animation: lyricFadeIn 0.5s ease-in;
+}
+
+.lyrics-placeholder {
+  font-size: 2rem;
+  font-weight: 700;
+  color: rgba(168, 85, 247, 0.4);
+  text-align: center;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+@keyframes lyricFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Controls */
+.karaoke-controls {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  border-top: 3px solid var(--neon-blue);
+  padding: 2rem;
+  box-shadow: 0 0 20px var(--neon-blue-glow);
+}
+
+.karaoke-controls-content {
+  max-width: 80rem;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+}
+
+.control-button {
+  padding: 1.5rem 4rem;
+  font-size: 1.5rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s;
+  border: 4px solid;
+}
+
+.start-button {
+  color: #000;
+  background: var(--neon-purple);
+  border-color: var(--neon-purple);
+  box-shadow: 0 0 30px var(--neon-purple-glow);
+}
+
+.start-button:hover {
+  background: var(--neon-blue);
+  border-color: var(--neon-blue);
+  box-shadow: 0 0 40px var(--neon-blue-glow);
+  transform: scale(1.05);
+}
+
+.stop-button {
+  color: #000;
+  background: #ef4444;
+  border-color: #dc2626;
+  box-shadow: 0 0 30px rgba(239, 68, 68, 0.6);
+}
+
+.stop-button:hover {
+  background: #dc2626;
+  box-shadow: 0 0 40px rgba(220, 38, 38, 0.8);
+  transform: scale(1.05);
+}
