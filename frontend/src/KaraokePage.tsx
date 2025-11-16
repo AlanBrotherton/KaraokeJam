@@ -47,6 +47,9 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
   const [error, setError] = useState('')
   const [userPitch, setUserPitch] = useState<number | null>(null)
   const [score, setScore] = useState(0)
+  const [finalScore, setFinalScore] = useState<number | null>(null)
+  const [showFinalScore, setShowFinalScore] = useState(false)
+  const [isNewHighScore, setIsNewHighScore] = useState(false)
   const [referencePitches, setReferencePitches] = useState<number[]>([])
   const [referenceTimes, setReferenceTimes] = useState<number[]>([])
   const audioRef = useRef<HTMLAudioElement>(null)
@@ -316,16 +319,18 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
             .from('songs')
             .update({ max_score: score })
             .eq('id', song.id)
-          
-          alert(`New High Score: ${score} points! 🎉`)
+          setIsNewHighScore(true)
         } else {
-          alert(`Final Score: ${score} points!\nHigh Score: ${currentMaxScore}`)
+          setIsNewHighScore(false)
         }
       } catch (err) {
         console.error('Error updating max score:', err)
-        alert(`Final Score: ${score} points!`)
       }
     }
+    
+    // Show final score screen
+    setFinalScore(score)
+    setShowFinalScore(true)
   }
 
   const formatTime = (seconds: number) => {
@@ -409,6 +414,91 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
     )
   }
 
+  // Final Score Screen
+  if (showFinalScore) {
+    return (
+      <div className="karaoke-container">
+        <div className="karaoke-main" style={{
+          display: 'flex',
+          flexDirection: 'column',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: '100vh',
+          gap: '40px'
+        }}>
+          {isNewHighScore && (
+            <div style={{
+              fontSize: '36px',
+              fontFamily: 'Press Start 2P, monospace',
+              color: '#ffd700',
+              textShadow: '0 0 20px #ffd700, 0 0 40px #ffd700, 0 0 60px #ffd700',
+              letterSpacing: '3px',
+              marginBottom: '30px',
+              animation: 'pulse 1.5s ease-in-out infinite'
+            }}>
+              NEW HIGH SCORE!
+            </div>
+          )}
+          <div style={{
+            fontSize: '48px',
+            fontFamily: 'Press Start 2P, monospace',
+            color: '#ff6b9d',
+            textShadow: '0 0 20px #ff6b9d, 0 0 40px #ff6b9d, 0 0 60px #ff6b9d',
+            letterSpacing: '4px',
+            marginBottom: '20px'
+          }}>
+            FINAL SCORE
+          </div>
+          <div style={{
+            fontSize: '96px',
+            fontFamily: 'Press Start 2P, monospace',
+            color: '#00ffff',
+            textShadow: '0 0 30px #00ffff, 0 0 60px #00ffff, 0 0 90px #00ffff',
+            lineHeight: '1.2'
+          }}>
+            {finalScore}
+          </div>
+          <div style={{
+            fontSize: '24px',
+            fontFamily: 'Press Start 2P, monospace',
+            color: '#00ffff',
+            textShadow: '0 0 10px #00ffff, 0 0 20px #00ffff',
+            marginTop: '10px'
+          }}>
+            POINTS
+          </div>
+          <button
+            onClick={onBack}
+            style={{
+              marginTop: '60px',
+              padding: '20px 60px',
+              fontSize: '24px',
+              fontFamily: 'Press Start 2P, monospace',
+              background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+              border: '3px solid #00ffff',
+              borderRadius: '12px',
+              color: '#ffffff',
+              cursor: 'pointer',
+              textShadow: '0 0 10px rgba(0, 255, 255, 0.5)',
+              boxShadow: '0 0 20px rgba(0, 255, 255, 0.3), 0 0 40px rgba(0, 255, 255, 0.2)',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.transform = 'scale(1.05)'
+              e.currentTarget.style.boxShadow = '0 0 30px rgba(0, 255, 255, 0.5), 0 0 60px rgba(0, 255, 255, 0.3)'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.transform = 'scale(1)'
+              e.currentTarget.style.boxShadow = '0 0 20px rgba(0, 255, 255, 0.3), 0 0 40px rgba(0, 255, 255, 0.2)'
+            }}
+          >
+            BACK
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="karaoke-container">
       {/* Hidden Audio Element */}
@@ -442,27 +532,6 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
         </div>
       </div>
 
-      {/* Pitch Display (Debug) */}
-      {isStarted && (
-        <div style={{
-          position: 'fixed',
-          top: '80px',
-          right: '20px',
-          background: 'rgba(0, 0, 0, 0.8)',
-          color: userPitch ? '#00ffff' : '#888',
-          padding: '10px 20px',
-          borderRadius: '8px',
-          border: '1px solid ' + (userPitch ? '#00ffff' : '#333'),
-          fontFamily: 'monospace',
-          fontSize: '14px',
-          zIndex: 1000
-        }}>
-          Your Pitch: {userPitch ? `${Math.round(userPitch)} Hz` : 'Not detected'}
-          <br />
-          Score: {score} pts
-        </div>
-      )}
-
       {/* Main Karaoke Area */}
       <div className="karaoke-main">
         {/* Countdown Overlay */}
@@ -472,13 +541,98 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
           </div>
         )}
 
-        {/* Video/Visualizer Area */}
+        {/* Video/Visualizer Area with Pitch and Score */}
         <div className="visualizer-area">
+          {/* Pitch Display (Left) */}
+          {isStarted && countdown === null && (
+            <div style={{
+              position: 'absolute',
+              left: '10%',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              textAlign: 'center',
+              zIndex: 10
+            }}>
+              <div style={{
+                fontSize: '18px',
+                fontFamily: 'Press Start 2P, monospace',
+                color: '#ff6b9d',
+                marginBottom: '15px',
+                textShadow: '0 0 10px #ff6b9d, 0 0 20px #ff6b9d',
+                letterSpacing: '2px'
+              }}>
+                PITCH
+              </div>
+              <div style={{
+                fontSize: '48px',
+                fontFamily: 'Press Start 2P, monospace',
+                color: userPitch ? '#00ffff' : '#444',
+                textShadow: userPitch ? '0 0 20px #00ffff, 0 0 40px #00ffff, 0 0 60px #00ffff' : 'none',
+                transition: 'all 0.2s ease',
+                lineHeight: '1.2'
+              }}>
+                {userPitch ? `${Math.round(userPitch)}` : '---'}
+              </div>
+              <div style={{
+                fontSize: '14px',
+                fontFamily: 'Press Start 2P, monospace',
+                color: userPitch ? '#00ffff' : '#444',
+                marginTop: '10px',
+                textShadow: userPitch ? '0 0 10px #00ffff' : 'none'
+              }}>
+                Hz
+              </div>
+            </div>
+          )}
+
+          {/* Center Visualizer */}
           <div className="visualizer-placeholder">
             <div className="pulse-circle"></div>
             <div className="pulse-circle pulse-2"></div>
             <div className="pulse-circle pulse-3"></div>
           </div>
+
+          {/* Score Display (Right) */}
+          {isStarted && countdown === null && (
+            <div style={{
+              position: 'absolute',
+              right: '10%',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              textAlign: 'center',
+              zIndex: 10
+            }}>
+              <div style={{
+                fontSize: '18px',
+                fontFamily: 'Press Start 2P, monospace',
+                color: '#ff6b9d',
+                marginBottom: '15px',
+                textShadow: '0 0 10px #ff6b9d, 0 0 20px #ff6b9d',
+                letterSpacing: '2px'
+              }}>
+                SCORE
+              </div>
+              <div style={{
+                fontSize: '48px',
+                fontFamily: 'Press Start 2P, monospace',
+                color: '#00ffff',
+                textShadow: '0 0 20px #00ffff, 0 0 40px #00ffff, 0 0 60px #00ffff',
+                transition: 'all 0.2s ease',
+                lineHeight: '1.2'
+              }}>
+                {score}
+              </div>
+              <div style={{
+                fontSize: '14px',
+                fontFamily: 'Press Start 2P, monospace',
+                color: '#00ffff',
+                marginTop: '10px',
+                textShadow: '0 0 10px #00ffff'
+              }}>
+                PTS
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Lyrics Display */}
