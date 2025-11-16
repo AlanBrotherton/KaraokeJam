@@ -3,12 +3,16 @@ FastAPI Backend Service with Background Song Processing
 """
 import os
 import asyncio
+import json
+import base64
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI, BackgroundTasks, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
+import numpy as np
 from supabase_client import supabase
 from process_song import SongProcessor
+from live_pitch import estimate_pitch_for_buffer
 
 # Load environment variables
 load_dotenv()
@@ -107,6 +111,56 @@ async def get_pending_songs():
         return {
             "error": str(e)
         }
+
+
+@app.websocket("/ws/pitch")
+async def websocket_pitch(websocket: WebSocket):
+    """WebSocket endpoint for real-time pitch analysis"""
+    await websocket.accept()
+    print("🎤 WebSocket client connected")
+    
+    try:
+        while True:
+            # Receive audio data from client
+            data = await websocket.receive_text()
+            message = json.loads(data)
+            
+            if message.get("type") == "audio":
+                # Decode base64 audio data
+                audio_b64 = message.get("data")
+                sample_rate = message.get("sampleRate", 48000)
+                
+                # Decode base64 to bytes, then to float32 array
+                audio_bytes = base64.b64decode(audio_b64)
+                audio_array = np.frombuffer(audio_bytes, dtype=np.float32)
+                
+                # Estimate pitch
+                pitch_result = estimate_pitch_for_buffer(
+                    audio_array,
+                    sample_rate=sample_rate,
+                    fmin=80.0,
+                    fmax=800.0
+                )
+                
+                # Send pitch back to client
+                await websocket.send_json({
+                    "type": "pitch",
+                    "pitch": pitch_result["pitch"],
+                    "time": pitch_result["time"],
+                    "voiced": pitch_result["voiced"]
+                })
+            
+            elif message.get("type") == "ping":
+                await websocket.send_json({"type": "pong"})
+                
+    except WebSocketDisconnect:
+        print("🎤 WebSocket client disconnected")
+    except Exception as e:
+        print(f"❌ WebSocket error: {e}")
+        try:
+            await websocket.close()
+        except:
+            pass
 
 
 if __name__ == "__main__":

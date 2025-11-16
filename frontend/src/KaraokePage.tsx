@@ -44,7 +44,14 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
   const [lyrics, setLyrics] = useState<LyricSegment[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [userPitch, setUserPitch] = useState<number | null>(null)
+  const [score, setScore] = useState(0)
+  const [referencePitches, setReferencePitches] = useState<number[]>([])
+  const [referenceTimes, setReferenceTimes] = useState<number[]>([])
   const audioRef = useRef<HTMLAudioElement>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioContextRef = useRef<AudioContext | null>(null)
+  const wsRef = useRef<WebSocket | null>(null)
 
   // Load lyrics data
   useEffect(() => {
@@ -83,6 +90,98 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
     loadLyrics()
   }, [song.lyrics_data_url])
 
+  // Load reference pitch data
+  useEffect(() => {
+    const loadPitchData = async () => {
+      if (!song.pitch_data_url) {
+        console.warn('No pitch data URL available')
+        return
+      }
+
+      try {
+        console.log('Loading pitch data from:', song.pitch_data_url)
+        const response = await fetch(song.pitch_data_url)
+        if (!response.ok) throw new Error('Failed to load pitch data')
+        const data = await response.json()
+        
+        console.log('Pitch data loaded:', data.pitches.length, 'frames')
+        setReferencePitches(data.pitches)
+        setReferenceTimes(data.times)
+      } catch (err: any) {
+        console.error('Error loading pitch data:', err)
+      }
+    }
+
+    loadPitchData()
+  }, [song.pitch_data_url])
+
+  // Setup WebSocket connection
+  useEffect(() => {
+    const ws = new WebSocket('ws://localhost:8000/ws/pitch')
+    
+    ws.onopen = () => {
+      console.log('WebSocket connected')
+    }
+    
+    ws.onmessage = (event) => {
+      const data = JSON.parse(event.data)
+      if (data.type === 'pitch') {
+        setUserPitch(data.pitch)
+        
+        // Compare with reference pitch and update score (only during lyrics)
+        if (data.pitch && referencePitches.length > 0 && currentTime > 0 && lyrics.length > 0) {
+          // Check if we're currently in a lyric segment
+          const currentSegment = lyrics.find(
+            seg => currentTime >= seg.start && currentTime <= seg.end
+          )
+          
+          // Only score during lyric segments
+          if (currentSegment) {
+            // Find closest reference pitch at current time
+            const closestIdx = referenceTimes.findIndex((t, idx) => 
+              idx === referenceTimes.length - 1 || 
+              (t <= currentTime && referenceTimes[idx + 1] > currentTime)
+            )
+            
+            if (closestIdx !== -1) {
+              const refPitch = referencePitches[closestIdx]
+              
+              if (refPitch && refPitch > 0) {
+                // Calculate pitch accuracy (within semitone = good)
+                const semitoneRatio = Math.abs(12 * Math.log2(data.pitch / refPitch))
+                
+                // Award points: 10 for perfect, 5 for within 0.5 semitone, 2 for within 1 semitone
+                if (semitoneRatio < 0.25) {
+                  setScore(prev => prev + 10)
+                } else if (semitoneRatio < 0.5) {
+                  setScore(prev => prev + 5)
+                } else if (semitoneRatio < 1.0) {
+                  setScore(prev => prev + 2)
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    
+    ws.onerror = (error) => {
+      console.error('WebSocket error:', error)
+    }
+    
+    ws.onclose = () => {
+      console.log('WebSocket disconnected')
+    }
+    
+    wsRef.current = ws
+    
+    return () => {
+      if (wsRef.current) {
+        wsRef.current.close()
+      }
+    }
+  }, [currentTime, referencePitches, referenceTimes, lyrics])
+
   // Update current time from audio playback
   useEffect(() => {
     const audio = audioRef.current
@@ -113,7 +212,8 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
       return () => clearTimeout(timer)
     } else if (countdown === 0) {
       setCountdown(null)
-      // Start the audio playback
+      // Start audio playback and recording simultaneously
+      startRecording()
       if (audioRef.current) {
         audioRef.current.play().catch(err => {
           console.error('Error playing audio:', err)
@@ -122,6 +222,61 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
       }
     }
   }, [countdown])
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+      
+      // Create AudioContext for processing
+      const audioContext = new AudioContext()
+      audioContextRef.current = audioContext
+      
+      const source = audioContext.createMediaStreamSource(stream)
+      const processor = audioContext.createScriptProcessor(4096, 1, 1)
+      
+      processor.onaudioprocess = (e) => {
+        const inputData = e.inputBuffer.getChannelData(0)
+        
+        // Send audio chunk to WebSocket for pitch analysis
+        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
+          const audioArray = new Float32Array(inputData)
+          const base64Audio = btoa(
+            String.fromCharCode(...new Uint8Array(audioArray.buffer))
+          )
+          
+          wsRef.current.send(JSON.stringify({
+            type: 'audio',
+            data: base64Audio,
+            sampleRate: audioContext.sampleRate
+          }))
+        }
+      }
+      
+      source.connect(processor)
+      processor.connect(audioContext.destination)
+      
+      // Store for cleanup
+      mediaRecorderRef.current = { stream, processor, source } as any
+      
+      console.log('Recording started')
+    } catch (err) {
+      console.error('Error starting recording:', err)
+      setError('Microphone access denied')
+    }
+  }
+
+  const stopRecording = () => {
+    if (audioContextRef.current) {
+      audioContextRef.current.close()
+    }
+    if (mediaRecorderRef.current) {
+      const { stream } = mediaRecorderRef.current as any
+      if (stream) {
+        stream.getTracks().forEach((track: MediaStreamTrack) => track.stop())
+      }
+    }
+    console.log('Recording stopped')
+  }
 
   const handleStart = () => {
     if (!song.instrumental_url) {
@@ -133,6 +288,7 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
   }
 
   const handleStop = () => {
+    stopRecording()
     if (audioRef.current) {
       audioRef.current.pause()
       audioRef.current.currentTime = 0
@@ -140,6 +296,12 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
     setIsStarted(false)
     setCountdown(null)
     setCurrentTime(0)
+    setUserPitch(null)
+    
+    // Show final score
+    if (score > 0) {
+      alert(`Final Score: ${score} points!`)
+    }
   }
 
   const formatTime = (seconds: number) => {
@@ -255,6 +417,27 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
           <div className="timer-display">{formatTime(currentTime)}</div>
         </div>
       </div>
+
+      {/* Pitch Display (Debug) */}
+      {isStarted && (
+        <div style={{
+          position: 'fixed',
+          top: '80px',
+          right: '20px',
+          background: 'rgba(0, 0, 0, 0.8)',
+          color: userPitch ? '#00ffff' : '#888',
+          padding: '10px 20px',
+          borderRadius: '8px',
+          border: '1px solid ' + (userPitch ? '#00ffff' : '#333'),
+          fontFamily: 'monospace',
+          fontSize: '14px',
+          zIndex: 1000
+        }}>
+          Your Pitch: {userPitch ? `${Math.round(userPitch)} Hz` : 'Not detected'}
+          <br />
+          Score: {score} pts
+        </div>
+      )}
 
       {/* Main Karaoke Area */}
       <div className="karaoke-main">
