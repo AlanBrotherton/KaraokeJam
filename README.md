@@ -183,11 +183,48 @@ CREATE INDEX idx_songs_processing_status ON songs(processing_status);
 2. **Audio Sync** - Instrumental track plays while lyrics display with word-level highlighting
 3. **Microphone Capture** - User's voice captured via Web Audio API (4096 sample buffer)
 4. **Pitch Analysis** - Audio chunks sent via WebSocket to backend for real-time pitch detection
-5. **Scoring** - User pitch compared to reference pitch during lyric segments (0.5s buffer)
-   - Perfect match (<0.25 semitones): 10 points
-   - Close match (<0.5 semitones): 5 points  
-   - Decent match (<1.0 semitones): 2 points
+5. **Scoring** - User pitch compared to reference pitch during lyric segments (see Scoring System below)
 6. **High Score** - Final score saved if it beats the previous record
+
+## Scoring System
+
+KaraokeJam uses a sophisticated real-time scoring algorithm that rewards pitch accuracy while being forgiving of natural singing variations.
+
+### How Scoring Works
+
+**Pitch Comparison**
+- Your live pitch (in Hz) is compared to the reference pitch extracted from the original vocal track
+- Comparison happens continuously throughout the song at approximately 100 times per second
+- Accuracy is measured in **semitones** (musical half-steps) rather than raw frequency difference
+
+**Semitone Calculation**
+```
+semitone_difference = |12 × log₂(user_pitch / reference_pitch)|
+```
+This formula accounts for the logarithmic nature of musical pitch perception.
+
+**Point Awards**
+- 🎯 **Perfect Match** (<0.25 semitones): **10 points** - Nearly exact pitch matching
+- ⭐ **Close Match** (<0.5 semitones): **5 points** - Very good pitch accuracy
+- ✓ **Decent Match** (<1.0 semitones): **2 points** - Acceptable pitch within tolerance
+
+**Smart Scoring Rules**
+1. **Lyric-Only Scoring** - Points are only awarded when lyrics are actively being sung, not during instrumental breaks
+2. **Forgiveness Buffer** - Scoring window extends 0.5 seconds before and after each lyric segment to account for natural timing variations
+3. **Continuous Feedback** - Your current score updates in real-time during performance, displayed arcade-style on screen
+4. **High Score Tracking** - Your best score per song is permanently saved and displayed as a competitive benchmark
+
+**Visual Feedback**
+- **Left Display**: Shows your current pitch in Hz with cyan neon glow when voice detected
+- **Right Display**: Shows your accumulating score in real-time
+- **Top-Right**: Current high score for the song (if one exists)
+- **Lyrics**: Active words highlight in cyan as they're sung
+
+**Example Scoring Scenario**
+If you're singing for 3 minutes with lyrics covering 2 minutes of that time:
+- Perfect pitch throughout: ~120,000 points (2 min × 60 sec × 100 checks/sec × 10 pts)
+- Close match throughout: ~60,000 points
+- Mix of accuracy levels: Typically 10,000-50,000 points for a good performance
 
 ## Project Structure
 ```
