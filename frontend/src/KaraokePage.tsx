@@ -50,6 +50,7 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
   const [finalScore, setFinalScore] = useState<number | null>(null)
   const [showFinalScore, setShowFinalScore] = useState(false)
   const [isNewHighScore, setIsNewHighScore] = useState(false)
+  const [currentHighScore, setCurrentHighScore] = useState<number>(0)
   const [referencePitches, setReferencePitches] = useState<number[]>([])
   const [referenceTimes, setReferenceTimes] = useState<number[]>([])
   const audioRef = useRef<HTMLAudioElement>(null)
@@ -313,6 +314,7 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
           .single()
         
         const currentMaxScore = currentSong?.max_score || 0
+        setCurrentHighScore(currentMaxScore)
         
         if (score > currentMaxScore) {
           await supabase
@@ -467,6 +469,17 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
           }}>
             POINTS
           </div>
+          {!isNewHighScore && currentHighScore > 0 && (
+            <div style={{
+              fontSize: '24px',
+              fontFamily: 'Press Start 2P, monospace',
+              color: '#ffd700',
+              textShadow: '0 0 10px #ffd700',
+              marginTop: '30px'
+            }}>
+              HIGH SCORE: {currentHighScore}
+            </div>
+          )}
           <button
             onClick={onBack}
             style={{
@@ -531,6 +544,40 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
           <div className="timer-display">{formatTime(currentTime)}</div>
         </div>
       </div>
+
+      {/* High Score Display */}
+      {song.max_score && song.max_score > 0 && (
+        <div style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: 'rgba(0, 0, 0, 0.8)',
+          border: '2px solid #ffd700',
+          borderRadius: '8px',
+          padding: '10px 20px',
+          zIndex: 1000
+        }}>
+          <div style={{
+            fontSize: '12px',
+            fontFamily: 'Press Start 2P, monospace',
+            color: '#ffd700',
+            textShadow: '0 0 10px #ffd700',
+            marginBottom: '5px',
+            textAlign: 'center'
+          }}>
+            HIGH SCORE
+          </div>
+          <div style={{
+            fontSize: '20px',
+            fontFamily: 'Press Start 2P, monospace',
+            color: '#ffd700',
+            textShadow: '0 0 15px #ffd700, 0 0 30px #ffd700',
+            textAlign: 'center'
+          }}>
+            {song.max_score}
+          </div>
+        </div>
+      )}
 
       {/* Main Karaoke Area */}
       <div className="karaoke-main">
