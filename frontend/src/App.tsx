@@ -16,10 +16,20 @@ interface User {
 }
 
 interface Song {
-  id: number
+  id: string
   title: string
   artist: string
-  duration: string
+  duration: number | null
+  uploaded_by: string
+  original_audio_url: string
+  vocals_url: string | null
+  instrumental_url: string | null
+  pitch_data_url: string | null
+  lyrics_data_url: string | null
+  processing_status: string
+  max_score: number | null
+  created_at: string
+  updated_at: string
 }
 
 function App() {
@@ -149,11 +159,12 @@ function App() {
       onBack={() => setCurrentPage('home')} 
       onSongSelect={handleSongSelect}
       onUploadClick={() => setCurrentPage('upload')}
+      user={user}
     />
   }
 
   if (currentPage === 'upload') {
-    return <SongUpload onBack={() => setCurrentPage('songs')} />
+    return <SongUpload onBack={() => setCurrentPage('songs')} user={user} />
   }
 
   if (currentPage === 'karaoke' && selectedSong) {

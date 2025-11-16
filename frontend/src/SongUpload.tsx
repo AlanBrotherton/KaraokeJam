@@ -1,16 +1,27 @@
 import { useState } from 'react'
 import './SongUpload.css'
 import logo from './assets/logo.png'
+import { supabase } from './supabaseClient'
+
+interface User {
+  id: string
+  username: string
+  first_name: string
+  last_name: string
+}
 
 interface SongUploadProps {
   onBack: () => void
+  user: User
 }
 
-function SongUpload({ onBack }: SongUploadProps) {
+function SongUpload({ onBack, user }: SongUploadProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [songTitle, setSongTitle] = useState('')
   const [artistName, setArtistName] = useState('')
   const [isDragging, setIsDragging] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
@@ -37,11 +48,65 @@ function SongUpload({ onBack }: SongUploadProps) {
     }
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // TODO: Handle upload logic
-    console.log('Uploading:', { selectedFile, songTitle, artistName })
-    alert('Upload functionality coming soon!')
+    if (!selectedFile) return
+
+    setUploading(true)
+    setError('')
+
+    try {
+      // Calculate duration first
+      const audio = new Audio(URL.createObjectURL(selectedFile))
+      await new Promise((resolve) => {
+        audio.onloadedmetadata = resolve
+      })
+      const duration = Math.floor(audio.duration)
+
+      // Generate UUID for song ID
+      const songId = crypto.randomUUID()
+
+      // Upload file to Supabase storage first
+      const fileExt = selectedFile.name.split('.').pop()
+      const filePath = `${songId}/original.${fileExt}`
+      
+      const { error: uploadError } = await supabase.storage
+        .from('songs-audio')
+        .upload(filePath, selectedFile)
+
+      if (uploadError) throw uploadError
+
+      // Get public URL
+      const { data: urlData } = supabase.storage
+        .from('songs-audio')
+        .getPublicUrl(filePath)
+
+      // Insert song record with all data including URL
+      const { data: song, error: dbError } = await supabase
+        .from('songs')
+        .insert({
+          id: songId,
+          title: songTitle,
+          artist: artistName,
+          duration: duration,
+          uploaded_by: user.id,
+          original_audio_url: urlData.publicUrl,
+          processing_status: 'pending'
+        })
+        .select()
+        .single()
+
+      if (dbError || !song) throw dbError || new Error('Failed to create song record')
+
+      // Success!
+      alert('Song uploaded successfully! Processing will begin shortly.')
+      onBack()
+    } catch (err: any) {
+      console.error('Upload error:', err)
+      setError(err.message || 'Failed to upload song')
+    } finally {
+      setUploading(false)
+    }
   }
 
   return (
@@ -113,6 +178,21 @@ function SongUpload({ onBack }: SongUploadProps) {
               )}
             </div>
 
+            {/* Error Message */}
+            {error && (
+              <div className="error-message" style={{ 
+                color: '#ef4444', 
+                backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+                border: '1px solid #ef4444',
+                padding: '12px',
+                borderRadius: '4px',
+                marginTop: '16px',
+                textAlign: 'center'
+              }}>
+                {error}
+              </div>
+            )}
+
             {/* Song Details */}
             <div className="form-fields">
               <div className="form-field">
@@ -143,10 +223,10 @@ function SongUpload({ onBack }: SongUploadProps) {
             {/* Submit Button */}
             <button
               type="submit"
-              disabled={!selectedFile || !songTitle || !artistName}
+              disabled={!selectedFile || !songTitle || !artistName || uploading}
               className="submit-button"
             >
-              Upload & Process Song
+              {uploading ? 'Uploading...' : 'Upload & Process Song'}
             </button>
 
             <p className="processing-note">

@@ -1,33 +1,61 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './SongList.css'
 import logo from './assets/logo.png'
+import { supabase } from './supabaseClient'
 
 interface Song {
-  id: number
+  id: string
   title: string
   artist: string
-  difficulty: 'Easy' | 'Medium' | 'Hard'
-  duration: string
+  duration: number | null
+  uploaded_by: string
+  original_audio_url: string
+  vocals_url: string | null
+  instrumental_url: string | null
+  pitch_data_url: string | null
+  lyrics_data_url: string | null
+  processing_status: string
+  max_score: number | null
+  created_at: string
+  updated_at: string
+}
+
+interface User {
+  id: string
+  username: string
+  first_name: string
+  last_name: string
 }
 
 interface SongListProps {
   onBack: () => void
   onSongSelect: (song: Song) => void
   onUploadClick: () => void
+  user: User
 }
 
-function SongList({ onBack, onSongSelect, onUploadClick }: SongListProps) {
+function SongList({ onBack, onSongSelect, onUploadClick, user }: SongListProps) {
   const [searchQuery, setSearchQuery] = useState('')
-  const [songs] = useState<Song[]>([])
+  const [songs, setSongs] = useState<Song[]>([])
+  const [loading, setLoading] = useState(true)
 
-  // TODO: Fetch songs from database
-  // useEffect(() => {
-  //   const fetchSongs = async () => {
-  //     const { data } = await supabase.from('songs').select('*')
-  //     setSongs(data || [])
-  //   }
-  //   fetchSongs()
-  // }, [setSongs])
+  useEffect(() => {
+    const fetchSongs = async () => {
+      const { data, error } = await supabase
+        .from('songs')
+        .select('*')
+        .eq('uploaded_by', user.id)
+        .order('created_at', { ascending: false })
+      
+      if (error) {
+        console.error('Error fetching songs:', error)
+      } else {
+        setSongs(data || [])
+      }
+      setLoading(false)
+    }
+    fetchSongs()
+  }, [user.id])
 
   const filteredSongs = songs.filter(song => {
     const matchesSearch = song.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -84,8 +112,15 @@ function SongList({ onBack, onSongSelect, onUploadClick }: SongListProps) {
       {/* Song List */}
       <div className="songs-grid-section">
         <div className="songs-grid-content">
-          <div className="songs-grid">
-            {filteredSongs.map(song => (
+          {loading ? (
+            <p className="empty-message">Loading songs...</p>
+          ) : filteredSongs.length === 0 ? (
+            <p className="empty-message">
+              {searchQuery ? 'No songs match your search.' : 'No songs uploaded yet. Click "Upload Song" to add your first song!'}
+            </p>
+          ) : (
+            <div className="songs-grid">
+              {filteredSongs.map(song => (
               <div
                 key={song.id}
                 onClick={() => handleSongSelect(song)}
@@ -104,12 +139,6 @@ function SongList({ onBack, onSongSelect, onUploadClick }: SongListProps) {
                 </div>
               </div>
             ))}
-          </div>
-
-          {filteredSongs.length === 0 && (
-            <div className="empty-state">
-              <p className="empty-state-title">{searchQuery ? 'No songs found' : 'No songs uploaded yet'}</p>
-              <p className="empty-state-subtitle">{searchQuery ? 'Try adjusting your search query' : 'Upload your first song to get started'}</p>
             </div>
           )}
         </div>
