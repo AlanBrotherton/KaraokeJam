@@ -97,6 +97,15 @@ Runs on: `http://localhost:8000`
 
 API Docs: `http://localhost:8000/docs`
 
+**Environment Variables:**
+Create a `.env` file in the `backend/` directory:
+```
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_KEY=your_supabase_service_role_key
+TEMP_DIR=./temp
+```
+Note: Use the **service role key** (not anon key) for backend operations.
+
 **Note:** If you encounter pip issues, upgrade pip first:
 ```bash
 pip install --upgrade pip
