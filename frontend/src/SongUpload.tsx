@@ -23,6 +23,11 @@ function SongUpload({ onBack, user }: SongUploadProps) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState('')
 
+  const handleSignOut = () => {
+    localStorage.removeItem('user')
+    window.location.reload()
+  }
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
     setIsDragging(true)
@@ -133,11 +138,19 @@ function SongUpload({ onBack, user }: SongUploadProps) {
           <h1 className="song-upload-title">
             Upload Song
           </h1>
-          <img 
-            src={logo} 
-            alt="KaraokeJam Logo" 
-            className="header-logo"
-          />
+          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+            <button
+              onClick={handleSignOut}
+              className="px-6 py-2 text-sm font-bold text-blue-400 bg-transparent border-2 border-blue-400 hover:bg-blue-400 hover:text-black transition-all uppercase tracking-wider"
+            >
+              Sign Out
+            </button>
+            <img 
+              src={logo} 
+              alt="KaraokeJam Logo" 
+              className="header-logo"
+            />
+          </div>
         </div>
       </div>
 
