@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import './KaraokePage.css'
+import { supabase } from './supabaseClient'
 
 interface LyricWord {
   word: string
@@ -287,7 +288,7 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
     setCountdown(3)
   }
 
-  const handleStop = () => {
+  const handleStop = async () => {
     stopRecording()
     if (audioRef.current) {
       audioRef.current.pause()
@@ -298,9 +299,31 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
     setCurrentTime(0)
     setUserPitch(null)
     
-    // Show final score
+    // Update max_score in database if this score is higher
     if (score > 0) {
-      alert(`Final Score: ${score} points!`)
+      try {
+        const { data: currentSong } = await supabase
+          .from('songs')
+          .select('max_score')
+          .eq('id', song.id)
+          .single()
+        
+        const currentMaxScore = currentSong?.max_score || 0
+        
+        if (score > currentMaxScore) {
+          await supabase
+            .from('songs')
+            .update({ max_score: score })
+            .eq('id', song.id)
+          
+          alert(`New High Score: ${score} points! 🎉`)
+        } else {
+          alert(`Final Score: ${score} points!\nHigh Score: ${currentMaxScore}`)
+        }
+      } catch (err) {
+        console.error('Error updating max score:', err)
+        alert(`Final Score: ${score} points!`)
+      }
     }
   }
 

@@ -71,6 +71,13 @@ function SongList({ onBack, onSongSelect, onUploadClick, user }: SongListProps) 
     onBack()
   }
 
+  const formatDuration = (seconds: number | null) => {
+    if (!seconds) return '--:--'
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, '0')}`
+  }
+
   return (
     <div className="song-list-container">
       {/* Header */}
@@ -135,7 +142,8 @@ function SongList({ onBack, onSongSelect, onUploadClick, user }: SongListProps) 
                   </div>
                 </div>
                 <div className="song-card-footer">
-                  <span>{song.duration}</span>
+                  <span>⏱️ {formatDuration(song.duration)}</span>
+                  <span>🏆 {song.max_score ? `${song.max_score} pts` : 'Not played'}</span>
                 </div>
               </div>
             ))}
