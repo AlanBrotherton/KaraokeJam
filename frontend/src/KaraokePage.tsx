@@ -304,30 +304,28 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
     setCurrentTime(0)
     setUserPitch(null)
     
-    // Update max_score in database if this score is higher
-    if (score > 0) {
-      try {
-        const { data: currentSong } = await supabase
+    // Fetch current high score and update if this score is higher
+    try {
+      const { data: currentSong } = await supabase
+        .from('songs')
+        .select('max_score')
+        .eq('id', song.id)
+        .single()
+      
+      const currentMaxScore = currentSong?.max_score || 0
+      setCurrentHighScore(currentMaxScore)
+      
+      if (score > currentMaxScore) {
+        await supabase
           .from('songs')
-          .select('max_score')
+          .update({ max_score: score })
           .eq('id', song.id)
-          .single()
-        
-        const currentMaxScore = currentSong?.max_score || 0
-        setCurrentHighScore(currentMaxScore)
-        
-        if (score > currentMaxScore) {
-          await supabase
-            .from('songs')
-            .update({ max_score: score })
-            .eq('id', song.id)
-          setIsNewHighScore(true)
-        } else {
-          setIsNewHighScore(false)
-        }
-      } catch (err) {
-        console.error('Error updating max score:', err)
+        setIsNewHighScore(true)
+      } else {
+        setIsNewHighScore(false)
       }
+    } catch (err) {
+      console.error('Error updating max score:', err)
     }
     
     // Show final score screen
