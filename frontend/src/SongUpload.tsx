@@ -141,7 +141,7 @@ function SongUpload({ onBack, user }: SongUploadProps) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
             <button
               onClick={handleSignOut}
-              className="px-6 py-2 text-sm font-bold text-blue-400 bg-transparent border-2 border-blue-400 hover:bg-blue-400 hover:text-black transition-all uppercase tracking-wider"
+              className="back-button"
             >
               Sign Out
             </button>
