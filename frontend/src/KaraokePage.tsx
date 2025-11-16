@@ -131,12 +131,13 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
         
         // Compare with reference pitch and update score (only during lyrics)
         if (data.pitch && referencePitches.length > 0 && currentTime > 0 && lyrics.length > 0) {
-          // Check if we're currently in a lyric segment
+          // Check if we're currently in a lyric segment (with 0.5s buffer before and after)
+          const buffer = 0.5
           const currentSegment = lyrics.find(
-            seg => currentTime >= seg.start && currentTime <= seg.end
+            seg => currentTime >= (seg.start - buffer) && currentTime <= (seg.end + buffer)
           )
           
-          // Only score during lyric segments
+          // Only score during lyric segments (with buffer)
           if (currentSegment) {
             // Find closest reference pitch at current time
             const closestIdx = referenceTimes.findIndex((t, idx) => 
