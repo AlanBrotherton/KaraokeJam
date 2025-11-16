@@ -469,7 +469,7 @@ function KaraokePage({ song, onBack }: KaraokePageProps) {
           }}>
             POINTS
           </div>
-          {!isNewHighScore && currentHighScore > 0 && (
+          {!isNewHighScore && (
             <div style={{
               fontSize: '24px',
               fontFamily: 'Press Start 2P, monospace',
