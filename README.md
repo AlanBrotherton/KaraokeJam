@@ -2,6 +2,19 @@
 
 KaraokeJam is an AI-powered karaoke app that turns any song into a playable karaoke experience with real-time pitch tracking and scoring. Upload your favorite tracks, and our system automatically separates vocals, extracts lyrics with word-level timing, and analyzes the melody so you can sing along and compete for high scores. It's like having a personalized karaoke arcade in your browser!
 
+## Table of Contents
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Authentication](#authentication)
+- [Setup & Running](#setup--running)
+- [How It Works](#how-it-works)
+- [Scoring System](#scoring-system)
+- [Project Structure](#project-structure)
+- [Development Notes](#development-notes)
+- [API Endpoints](#api-endpoints)
+- [Known Limitations](#known-limitations)
+- [Future Enhancements](#future-enhancements)
+
 ## Features
 - **Custom Authentication** - Secure username/password authentication with bcrypt password hashing
 - **Automated Song Processing** - AI-powered vocal separation, lyrics extraction with word-level timestamps, and pitch analysis
@@ -173,20 +186,34 @@ If you're singing for 3 minutes with lyrics covering 2 minutes of that time:
 ## Project Structure
 ```
 KaraokeJam/
+├── README.md                    # Project documentation
+├── .gitignore
 ├── frontend/
 │   ├── src/
 │   │   ├── App.tsx              # Main app with auth & routing
+│   │   ├── App.css
+│   │   ├── main.tsx             # React entry point
+│   │   ├── index.css            # Global styles
 │   │   ├── SignIn.tsx           # Sign in/sign up page
-│   │   ├── SongList.tsx         # Song library with search
+│   │   ├── SignIn.css
+│   │   ├── SongList.tsx         # Song library with search & delete
+│   │   ├── SongList.css
 │   │   ├── SongUpload.tsx       # Song upload form
+│   │   ├── SongUpload.css
 │   │   ├── KaraokePage.tsx      # Karaoke player with scoring
+│   │   ├── KaraokePage.css
 │   │   ├── supabaseClient.ts    # Supabase configuration
-│   │   ├── assets/
-│   │   │   └── logo.png         # KaraokeJam logo
-│   │   └── *.css                # Component styles
+│   │   └── assets/
+│   │       └── logo.png         # KaraokeJam logo
+│   ├── public/
 │   ├── .env                     # Environment variables (not in git)
+│   ├── .env.example             # Environment template
 │   ├── package.json
-│   └── vite.config.ts
+│   ├── vite.config.ts
+│   ├── tsconfig.json
+│   ├── tsconfig.app.json
+│   ├── tsconfig.node.json
+│   └── eslint.config.js
 └── backend/
     ├── main.py                  # FastAPI app with WebSocket endpoint
     ├── process_song.py          # Song processing pipeline
@@ -195,7 +222,10 @@ KaraokeJam/
     ├── extract_lyrics.py        # Whisper lyrics extraction
     ├── extract_pitches.py       # Librosa pitch analysis
     ├── supabase_client.py       # Supabase configuration
-    ├── requirements.txt
+    ├── requirements.txt         # Python dependencies
+    ├── .env                     # Environment variables (not in git)
+    ├── .env.example             # Environment template
+    ├── README.md                # Backend documentation
     └── temp/                    # Temporary processing files
 ```
 
