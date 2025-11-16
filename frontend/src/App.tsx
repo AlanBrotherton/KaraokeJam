@@ -176,7 +176,8 @@ function App() {
       {/* Sign Out Button */}
       <button
         onClick={handleSignOut}
-        className="absolute top-6 right-6 px-6 py-2 text-sm font-bold text-blue-400 bg-transparent border-2 border-blue-400 hover:bg-blue-400 hover:text-black transition-all uppercase tracking-wider"
+        className="back-button"
+        style={{ position: 'absolute', top: '1.5rem', right: '1.5rem' }}
       >
         Sign Out
       </button>
@@ -201,10 +202,10 @@ function App() {
         {/* Browse Button */}
         <button
           onClick={handleBrowseSongs}
-          className="px-12 py-4 text-lg font-bold text-black bg-purple-500 rounded border-4 border-purple-400 hover:bg-blue-500 hover:border-blue-400 transition-all uppercase tracking-wider shadow-[0_0_20px_rgba(168,85,247,0.6)] hover:shadow-[0_0_30px_rgba(59,130,246,0.8)]"
-          style={{ marginTop: '40px' }}
+          className="px-20 py-7 text-2xl font-bold text-black bg-purple-500 rounded border-4 border-purple-400 hover:bg-blue-500 hover:border-blue-400 transition-all uppercase tracking-wider shadow-[0_0_24px_rgba(168,85,247,0.7)] hover:shadow-[0_0_36px_rgba(59,130,246,0.9)]"
+          style={{ marginTop: '40px', minWidth: '320px' }}
         >
-          Browse Songs
+          Song Library
         </button>
       </div>
     </div>
