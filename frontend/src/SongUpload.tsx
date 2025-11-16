@@ -98,8 +98,18 @@ function SongUpload({ onBack, user }: SongUploadProps) {
 
       if (dbError || !song) throw dbError || new Error('Failed to create song record')
 
+      // Trigger backend processing immediately
+      try {
+        await fetch(`http://localhost:8000/process/${songId}`, {
+          method: 'POST'
+        })
+      } catch (processError) {
+        console.warn('Failed to trigger processing:', processError)
+        // Don't fail the upload if processing trigger fails
+      }
+
       // Success!
-      alert('Song uploaded successfully! Processing will begin shortly.')
+      alert('Song uploaded successfully! Processing has started.')
       onBack()
     } catch (err: any) {
       console.error('Upload error:', err)
