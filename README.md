@@ -111,71 +111,6 @@ Note: Use the **service role key** (not anon key) for backend operations.
 pip install --upgrade pip
 ```
 
-### Database Setup
-
-#### Supabase Configuration
-1. Create a new Supabase project at https://supabase.com
-2. Create two storage buckets:
-   - `songs-audio` (for audio files)
-   - `songs-data` (for JSON data)
-3. Make both buckets public
-4. Run the following SQL in your Supabase SQL Editor:
-
-```sql
--- Users table
-CREATE TABLE IF NOT EXISTS users (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  username TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
-  first_name TEXT NOT NULL,
-  last_name TEXT NOT NULL,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-ALTER TABLE users ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Public can select users"
-  ON users FOR SELECT TO public USING (true);
-
-CREATE POLICY "Public can insert users"
-  ON users FOR INSERT TO public WITH CHECK (true);
-
-CREATE INDEX idx_users_username ON users(username);
-
--- Songs table
-CREATE TABLE IF NOT EXISTS songs (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  title TEXT NOT NULL,
-  artist TEXT NOT NULL,
-  duration INTEGER,
-  uploaded_by UUID REFERENCES users(id) ON DELETE CASCADE,
-  original_audio_url TEXT NOT NULL,
-  vocals_url TEXT,
-  instrumental_url TEXT,
-  pitch_data_url TEXT,
-  lyrics_data_url TEXT,
-  processing_status TEXT DEFAULT 'pending',
-  max_score INTEGER,
-  created_at TIMESTAMPTZ DEFAULT NOW(),
-  updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-ALTER TABLE songs ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view their own songs"
-  ON songs FOR SELECT TO public USING (true);
-
-CREATE POLICY "Users can insert their own songs"
-  ON songs FOR INSERT TO public WITH CHECK (true);
-
-CREATE POLICY "Users can update their own songs"
-  ON songs FOR UPDATE TO public USING (true);
-
-CREATE INDEX idx_songs_uploaded_by ON songs(uploaded_by);
-CREATE INDEX idx_songs_processing_status ON songs(processing_status);
-```
-
 ## How It Works
 
 ### Song Processing Pipeline
@@ -213,9 +148,9 @@ semitone_difference = |12 × log₂(user_pitch / reference_pitch)|
 This formula accounts for the logarithmic nature of musical pitch perception.
 
 **Point Awards**
-- 🎯 **Perfect Match** (<0.25 semitones): **10 points** - Nearly exact pitch matching
-- ⭐ **Close Match** (<0.5 semitones): **5 points** - Very good pitch accuracy
-- ✓ **Decent Match** (<1.0 semitones): **2 points** - Acceptable pitch within tolerance
+- **Perfect Match** (<0.25 semitones): **10 points** - Nearly exact pitch matching
+- **Close Match** (<0.5 semitones): **5 points** - Very good pitch accuracy
+- **Decent Match** (<1.0 semitones): **2 points** - Acceptable pitch within tolerance
 
 **Smart Scoring Rules**
 1. **Lyric-Only Scoring** - Points are only awarded when lyrics are actively being sung, not during instrumental breaks
