@@ -140,26 +140,44 @@ function SongList({ onBack, onSongSelect, onUploadClick, user }: SongListProps) 
             </p>
           ) : (
             <div className="songs-grid">
-              {filteredSongs.map(song => (
-              <div
-                key={song.id}
-                onClick={() => handleSongSelect(song)}
-                className="song-card"
-              >
-                <div className="song-card-header">
-                  <div className="song-info">
-                    <h3 className="song-title">
-                      {song.title}
-                    </h3>
-                    <p className="song-artist">{song.artist}</p>
+              {filteredSongs.map(song => {
+                const isProcessing = song.processing_status !== 'completed'
+                return (
+                  <div
+                    key={song.id}
+                    onClick={() => !isProcessing && handleSongSelect(song)}
+                    className="song-card"
+                    style={{
+                      opacity: isProcessing ? 0.6 : 1,
+                      cursor: isProcessing ? 'not-allowed' : 'pointer',
+                      filter: isProcessing ? 'grayscale(0.5)' : 'none'
+                    }}
+                  >
+                    <div className="song-card-header">
+                      <div className="song-info">
+                        <h3 className="song-title">
+                          {song.title}
+                        </h3>
+                        <p className="song-artist">{song.artist}</p>
+                        {isProcessing && (
+                          <p style={{
+                            fontSize: '12px',
+                            color: '#ff6b9d',
+                            marginTop: '5px',
+                            fontWeight: 'bold'
+                          }}>
+                            ⏳ Processing...
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="song-card-footer">
+                      <span>⏱️ {formatDuration(song.duration)}</span>
+                      <span>🏆 {song.max_score ? `${song.max_score} pts` : 'Not played'}</span>
+                    </div>
                   </div>
-                </div>
-                <div className="song-card-footer">
-                  <span>⏱️ {formatDuration(song.duration)}</span>
-                  <span>🏆 {song.max_score ? `${song.max_score} pts` : 'Not played'}</span>
-                </div>
-              </div>
-            ))}
+                )
+              })}
             </div>
           )}
         </div>
